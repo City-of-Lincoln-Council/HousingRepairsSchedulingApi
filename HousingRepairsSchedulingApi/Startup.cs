@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using HousingRepairsOnline.Authentication.DependencyInjection;
 
 namespace HousingRepairsSchedulingApi
 {
@@ -19,6 +20,8 @@ namespace HousingRepairsSchedulingApi
 
     public class Startup
     {
+        private const string HousingRepairsSchedulingApiIssuerId = "Housing Management System Api";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -29,6 +32,7 @@ namespace HousingRepairsSchedulingApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHousingRepairsOnlineAuthentication(HousingRepairsSchedulingApiIssuerId);
 
             services.AddControllers();
             services.AddTransient<IRetrieveAvailableAppointmentsUseCase, RetrieveAvailableAppointmentsUseCase>();
@@ -53,11 +57,12 @@ namespace HousingRepairsSchedulingApi
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllers().RequireAuthorization();
             });
         }
     }
