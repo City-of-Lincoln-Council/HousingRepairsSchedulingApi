@@ -16,6 +16,7 @@ namespace HousingRepairsSchedulingApi.Controllers
         }
 
         [HttpGet]
+        [Route("AvailableAppointments")]
         public async Task<IActionResult> AvailableAppointments([FromQuery] string sorCode, [FromQuery] string locationId)
         {
             var result = await retrieveAvailableAppointmentsUseCase.Execute(sorCode, locationId);
