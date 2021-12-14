@@ -1,5 +1,6 @@
 namespace HousingRepairsSchedulingApi.Controllers
 {
+    using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
     using UseCases;
@@ -17,9 +18,9 @@ namespace HousingRepairsSchedulingApi.Controllers
 
         [HttpGet]
         [Route("AvailableAppointments")]
-        public async Task<IActionResult> AvailableAppointments([FromQuery] string sorCode, [FromQuery] string locationId)
+        public async Task<IActionResult> AvailableAppointments([FromQuery] string sorCode, [FromQuery] string locationId, [FromQuery] DateTime? fromDate = null)
         {
-            var result = await retrieveAvailableAppointmentsUseCase.Execute(sorCode, locationId);
+            var result = await retrieveAvailableAppointmentsUseCase.Execute(sorCode, locationId, fromDate);
             return this.Ok(result);
         }
     }

@@ -52,6 +52,21 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
             await act.Should().ThrowExactlyAsync<T>();
         }
 
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenANullFromDate_WhenExecute_ThenNoExceptionIsThrown()
+#pragma warning restore CA1707
+        {
+            // Arrange
+            var systemUnderTest = new RetrieveAvailableAppointmentsUseCase(appointmentsGatewayMock.Object);
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.Execute("SoR Code", "location Id", null);
+
+            // Assert
+            await act.Should().NotThrowAsync();
+        }
+
         public static IEnumerable<object[]> InvalidArgumentTestData()
         {
             yield return new object[] { new ArgumentNullException(), null };
@@ -65,7 +80,7 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
             const string uprn = "uprn";
             const string locationId = "locationId";
             await sytemUndertest.Execute("uprn", "locationId");
-            appointmentsGatewayMock.Verify(x => x.GetAvailableAppointments(uprn, locationId), Times.Once);
+            appointmentsGatewayMock.Verify(x => x.GetAvailableAppointments(uprn, locationId, null), Times.Once);
         }
     }
 }

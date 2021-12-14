@@ -1,5 +1,6 @@
 namespace HousingRepairsSchedulingApi.UseCases
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
@@ -15,12 +16,12 @@ namespace HousingRepairsSchedulingApi.UseCases
             this.appointmentsGateway = appointmentsGateway;
         }
 
-        public async Task<IEnumerable<Appointment>> Execute(string sorCode, string locationId)
+        public async Task<IEnumerable<Appointment>> Execute(string sorCode, string locationId, DateTime? fromDate = null)
         {
             Guard.Against.NullOrWhiteSpace(sorCode, nameof(sorCode));
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
 
-            var result = await appointmentsGateway.GetAvailableAppointments(sorCode, locationId);
+            var result = await appointmentsGateway.GetAvailableAppointments(sorCode, locationId, fromDate);
             return result;
         }
     }
