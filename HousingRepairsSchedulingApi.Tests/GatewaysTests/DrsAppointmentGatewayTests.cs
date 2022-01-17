@@ -2,9 +2,11 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Gateways;
+    using HACT.Dtos;
     using Moq;
     using Services.Drs;
     using Xunit;
@@ -12,19 +14,94 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
     public class DrsAppointmentGatewayTests
     {
         private Mock<IDrsService> drsServiceMock = new();
+        private DrsAppointmentGateway systemUnderTest;
+        private const int RequiredNumberOfAppointmentDays = 5;
+        private const int AppointmentSearchTimeSpanInDays = 14;
+        private const int AppointmentLeadTimeInDays = 0;
+
+        public DrsAppointmentGatewayTests()
+        {
+            systemUnderTest = new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                RequiredNumberOfAppointmentDays,
+                AppointmentSearchTimeSpanInDays,
+                AppointmentLeadTimeInDays);
+        }
 
         [Fact]
 #pragma warning disable xUnit1026
-        public void GivenNullDrsServiceParameter_WhenInstantiating_ThenExceptionIsThrown()
+        public void GivenNullDrsServiceParameter_WhenInstantiating_ThenArgumentNullExceptionIsThrown()
 #pragma warning restore xUnit1026
         {
             // Arrange
 
             // Act
-            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(null);
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
+                null,
+                default,
+                default,
+                default);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+#pragma warning disable xUnit1026
+        public void GivenInvalidRequiredNumberOfAppointmentsParameter_WhenInstantiating_ThenArgumentExceptionIsThrown(int invalidRequiredNumberOfAppointments)
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                invalidRequiredNumberOfAppointments,
+                default,
+                default);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentException>();
+        }
+
+        [Fact]
+#pragma warning disable xUnit1026
+        public void GivenInvalidAppointmentLeadTimeInDaysParameter_WhenInstantiating_ThenArgumentExceptionIsThrown()
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                1,
+                1,
+                -1);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+#pragma warning disable xUnit1026
+        public void GivenInvalidAppointmentSearchTimeSpanInDaysParameter_WhenInstantiating_ThenArgumentExceptionIsThrown(int invalidAppointmentSearchTimeSpanInDays)
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                1,
+                invalidAppointmentSearchTimeSpanInDays,
+                default);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentException>();
         }
 
         public static IEnumerable<object[]> InvalidArgumentTestData()
@@ -41,7 +118,6 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 #pragma warning restore xUnit1026
         {
             // Arrange
-            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, It.IsAny<string>());
@@ -58,8 +134,6 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         {
             // Arrange
             var sorCode = "sorCode";
-            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
-
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
@@ -76,13 +150,218 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             // Arrange
             var sorCode = "sorCode";
             var locationId = "locationId";
-            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
+            drsServiceMock.Setup(x => x.CheckAvailability(It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>())).ReturnsAsync(CreateAppointmentsForSequentialDays(new DateTime(2022, 1, 17), 5));
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, locationId, null);
 
             // Assert
             await act.Should().NotThrowAsync<NullReferenceException>();
+        }
+
+        [Theory]
+        [MemberData(nameof(DrsServiceHasFiveAvailableAppointmentsTestData))]
+        public async void GivenDrsServiceHasFiveDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<Appointment>> appointmentReturnSequence)
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "locationId";
+
+            var setupSequentialResult = drsServiceMock.SetupSequence(x => x.CheckAvailability(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DateTime>()));
+
+            foreach (var appointments in appointmentReturnSequence)
+            {
+                setupSequentialResult = setupSequentialResult.ReturnsAsync(appointments);
+            }
+
+            // Act
+            var actualAppointments = await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
+
+            // Assert
+            Assert.Equal(RequiredNumberOfAppointmentDays, actualAppointments.Select(x => x.Date).Distinct().Count());
+        }
+
+        public static IEnumerable<object[]> DrsServiceHasFiveAvailableAppointmentsTestData()
+        {
+            // single appointment per day
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 19), true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 21), true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), true),
+            }};
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), include0800To1200: true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), include0800To1200: true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), include0800To1200: true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 21), include0800To1200: true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), include0800To1200: true),
+            }};
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), include0800To1200: true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), include0800To1200: true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), include0800To1200: true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 21), include0800To1200: true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), include0800To1200: true),
+            }};
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), true)),
+                Array.Empty<Appointment>(),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 21), true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), true),
+            }};
+
+            // multiple appointments per day
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 19), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true),
+            }};
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), true, true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true),
+            }};
+        }
+
+        private static IEnumerable<Appointment> CreateAppointmentsForDay(DateTime dateTime,
+            bool include0800To1200 = false,
+            bool include1200To1600 = false,
+            bool include0930To1430 = false)
+        {
+            var result = new List<Appointment>();
+
+            if (include0800To1200)
+            {
+                result.Add(
+                    new()
+                    {
+                        Date = dateTime,
+                        TimeOfDay = new TimeOfDay
+                        {
+                            EarliestArrivalTime = dateTime.AddHours(8),
+                            LatestArrivalTime = dateTime.AddHours(12),
+                        }
+                    }
+                );
+            }
+
+            if (include0930To1430)
+            {
+                result.Add(
+                    new()
+                    {
+                        Date = dateTime,
+                        TimeOfDay = new TimeOfDay
+                        {
+                            EarliestArrivalTime = dateTime.AddHours(9).AddMinutes(30),
+                            LatestArrivalTime = dateTime.AddHours(14).AddMinutes(30),
+                        }
+                    }
+                );
+            }
+
+            if (include1200To1600)
+            {
+                result.Add(
+                    new()
+                    {
+                        Date = dateTime,
+                        TimeOfDay = new TimeOfDay
+                        {
+                            EarliestArrivalTime = dateTime.AddHours(12),
+                            LatestArrivalTime = dateTime.AddHours(16),
+                        }
+                    }
+                );
+            }
+
+            return result;
+        }
+
+        private static Appointment[] CreateAppointmentsForSequentialDays(DateTime firstDate, int numberOfDays)
+        {
+            var appointments = Enumerable.Range(0, numberOfDays).Select(x => CreateAppointmentForDay(firstDate.AddDays(x))).ToArray();
+
+            return appointments;
+
+            Appointment CreateAppointmentForDay(DateTime date)
+            {
+                return CreateAppointmentsForDay(date, true).Single();
+            }
+        }
+
+        [Fact]
+        public async void GivenDrsServiceHasAvailableAppointmentsThatAreNotRequired_WhenGettingAvailableAppointments_ThenOnlyValidAppointmentsAreReturned()
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "locationId";
+
+            systemUnderTest = new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                1,
+                AppointmentSearchTimeSpanInDays,
+                AppointmentLeadTimeInDays);
+
+            drsServiceMock.SetupSequence(x => x.CheckAvailability(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DateTime>()))
+                .ReturnsAsync(CreateAppointmentsForDay(new DateTime(2022, 1, 17), true, true, true));
+
+            var expected = CreateAppointmentsForDay(new DateTime(2022, 1, 17), true, true);
+
+            // Act
+            var actualAppointments = await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
+            actualAppointments = actualAppointments.ToArray();
+
+            // Assert
+            actualAppointments.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact]
+        public async void GivenDrsServiceRequiresMultipleRequests_WhenGettingAvailableAppointments_ThenCorrectTimeSpanIncrementApplied()
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "locationId";
+
+            drsServiceMock.Setup(x => x.CheckAvailability(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    new DateTime(2022, 1, 17)))
+                .ReturnsAsync(CreateAppointmentsForSequentialDays(new DateTime(2022, 1, 17), RequiredNumberOfAppointmentDays - 2));
+            drsServiceMock.Setup(x => x.CheckAvailability(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        new DateTime(2022, 1, 31)))
+                .ReturnsAsync(CreateAppointmentsForSequentialDays(new DateTime(2022, 1, 31),
+                    RequiredNumberOfAppointmentDays - (RequiredNumberOfAppointmentDays - 2)));
+
+            // Act
+            _ = await systemUnderTest.GetAvailableAppointments(sorCode, locationId, new DateTime(2022, 1, 17));
+
+            // Assert
+            drsServiceMock.VerifyAll();
         }
     }
 }
