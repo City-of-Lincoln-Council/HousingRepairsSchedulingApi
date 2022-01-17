@@ -6,23 +6,25 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
     using FluentAssertions;
     using Gateways;
     using Moq;
+    using Services.Drs;
     using Xunit;
 
     public class DrsAppointmentGatewayTests
     {
-        [Theory]
-        [MemberData(nameof(InvalidArgumentTestData))]
+        private Mock<IDrsService> drsServiceMock = new();
+
+        [Fact]
 #pragma warning disable xUnit1026
-        public void GivenInvalidDrsUrlParameter_WhenInstantiating_ThenExceptionIsThrown<T>(T exception, string drsUrl) where T : Exception
+        public void GivenNullDrsServiceParameter_WhenInstantiating_ThenExceptionIsThrown()
 #pragma warning restore xUnit1026
         {
             // Arrange
 
             // Act
-            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(drsUrl);
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(null);
 
             // Assert
-            act.Should().ThrowExactly<T>();
+            act.Should().ThrowExactly<ArgumentNullException>();
         }
 
         public static IEnumerable<object[]> InvalidArgumentTestData()
@@ -39,8 +41,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 #pragma warning restore xUnit1026
         {
             // Arrange
-            var drsUrl = "DRS_URL";
-            var systemUnderTest = new DrsAppointmentGateway(drsUrl);
+            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, It.IsAny<string>());
@@ -56,9 +57,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 #pragma warning restore xUnit1026
         {
             // Arrange
-            var drsUrl = "DRS_URL";
             var sorCode = "sorCode";
-            var systemUnderTest = new DrsAppointmentGateway(drsUrl);
+            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
+
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
@@ -73,10 +74,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 #pragma warning restore xUnit1026
         {
             // Arrange
-            var drsUrl = "DRS_URL";
             var sorCode = "sorCode";
             var locationId = "locationId";
-            var systemUnderTest = new DrsAppointmentGateway(drsUrl);
+            var systemUnderTest = new DrsAppointmentGateway(this.drsServiceMock.Object);
 
             // Act
             Func<Task> act = async () => await systemUnderTest.GetAvailableAppointments(sorCode, locationId, null);

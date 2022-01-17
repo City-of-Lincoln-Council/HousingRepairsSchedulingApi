@@ -6,16 +6,16 @@ namespace HousingRepairsSchedulingApi.Gateways
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
     using HACT.Dtos;
+    using Services.Drs;
 
     public class DrsAppointmentGateway : IAppointmentsGateway
     {
-        private readonly string drsUrl;
+        private readonly IDrsService drsService;
 
-        public DrsAppointmentGateway(string drsUrl)
+        public DrsAppointmentGateway(IDrsService drsService)
         {
-            Guard.Against.NullOrWhiteSpace(drsUrl, nameof(drsUrl));
-
-            this.drsUrl = drsUrl;
+            Guard.Against.Null(drsService, nameof(drsService));
+            this.drsService = drsService;
         }
 
         public Task<IEnumerable<Appointment>> GetAvailableAppointments(string sorCode, string locationId,
