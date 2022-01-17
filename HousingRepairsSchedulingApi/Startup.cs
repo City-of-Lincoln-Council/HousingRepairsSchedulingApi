@@ -36,7 +36,10 @@ namespace HousingRepairsSchedulingApi
 
             services.AddControllers();
             services.AddTransient<IRetrieveAvailableAppointmentsUseCase, RetrieveAvailableAppointmentsUseCase>();
+
+            var drsUrl = GetEnvironmentVariable("DRS_URL");
             services.AddTransient<IAppointmentsGateway, DummyAppointmentsGateway>();
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HousingRepairsSchedulingApi", Version = "v1" });
@@ -65,6 +68,12 @@ namespace HousingRepairsSchedulingApi
             {
                 endpoints.MapControllers().RequireAuthorization();
             });
+        }
+
+        private static string GetEnvironmentVariable(string name)
+        {
+            return Environment.GetEnvironmentVariable(name) ??
+                   throw new InvalidOperationException($"Incorrect configuration: '{name}' environment variable must be set");
         }
     }
 }
