@@ -3,10 +3,10 @@ namespace HousingRepairsSchedulingApi.Services.Drs
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using HACT.Dtos;
+    using Domain.Drs;
 
     public interface IDrsService
     {
-        Task<IEnumerable<Appointment>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate);
+        Task<IEnumerable<DrsAppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate);
     }
 }

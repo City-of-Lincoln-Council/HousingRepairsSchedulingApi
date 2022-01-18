@@ -5,6 +5,7 @@ namespace HousingRepairsSchedulingApi.Gateways
     using System.Linq;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
+    using Domain.Drs;
     using HACT.Dtos;
     using Services.Drs;
 
@@ -35,18 +36,20 @@ namespace HousingRepairsSchedulingApi.Gateways
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
 
             var earliestDate = fromDate ?? DateTime.Today.AddDays(appointmentLeadTimeInDays);
-            var result = Enumerable.Empty<Appointment>();
+            var drsAppointmentSlots = Enumerable.Empty<DrsAppointmentSlot>();
 
-            while (result.Select(x => x.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
+            while (drsAppointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
             {
                 var appointments = await drsService.CheckAvailability(sorCode, locationId, earliestDate);
                 appointments = appointments.Where(x =>
-                    !(x.TimeOfDay.EarliestArrivalTime.Hour == 9 && x.TimeOfDay.EarliestArrivalTime.Minute == 30
-                      && x.TimeOfDay.LatestArrivalTime.Hour == 14 && x.TimeOfDay.LatestArrivalTime.Minute == 30)
+                    !(x.StartTime.Hour == 9 && x.EndTime.Minute == 30
+                      && x.EndTime.Hour == 14 && x.EndTime.Minute == 30)
                 );
-                result = result.Concat(appointments);
+                drsAppointmentSlots = drsAppointmentSlots.Concat(appointments);
                 earliestDate = earliestDate.AddDays(appointmentSearchTimeSpanInDays);
             }
+
+            var result = drsAppointmentSlots.Select(x => x.ToHactAppointment());
 
             return result;
         }
