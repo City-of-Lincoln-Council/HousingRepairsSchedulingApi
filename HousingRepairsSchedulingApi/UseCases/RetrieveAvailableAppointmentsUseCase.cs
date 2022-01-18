@@ -2,8 +2,10 @@ namespace HousingRepairsSchedulingApi.UseCases
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
+    using Domain;
     using Gateways;
     using HACT.Dtos;
 
@@ -21,7 +23,10 @@ namespace HousingRepairsSchedulingApi.UseCases
             Guard.Against.NullOrWhiteSpace(sorCode, nameof(sorCode));
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
 
-            var result = await appointmentsGateway.GetAvailableAppointments(sorCode, locationId, fromDate);
+            var availableAppointments = await appointmentsGateway.GetAvailableAppointments(sorCode, locationId, fromDate);
+
+            var result = availableAppointments.Select(x => x.ToHactAppointment());
+
             return result;
         }
     }

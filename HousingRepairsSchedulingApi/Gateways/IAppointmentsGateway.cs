@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HACT.Dtos;
+
 namespace HousingRepairsSchedulingApi.Gateways
 {
+    using Domain;
+
     public interface IAppointmentsGateway
     {
-        Task<IEnumerable<Appointment>> GetAvailableAppointments(string sorCode, string locationId, DateTime? fromDate = null);
+        Task<IEnumerable<AppointmentSlot>> GetAvailableAppointments(string sorCode, string locationId, DateTime? fromDate = null);
     }
 }

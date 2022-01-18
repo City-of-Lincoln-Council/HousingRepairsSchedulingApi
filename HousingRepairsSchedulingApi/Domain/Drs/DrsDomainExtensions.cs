@@ -1,14 +1,12 @@
 namespace HousingRepairsSchedulingApi.Domain.Drs
 {
-    using HACT.Dtos;
-
     public static class DrsDomainExtensions
     {
-        public static Appointment ToHactAppointment(this DrsAppointmentSlot drsAppointmentSlot) =>
+        public static AppointmentSlot ToAppointmentSlot(this DrsAppointmentSlot drsAppointmentSlot) =>
             new()
             {
-                Date = drsAppointmentSlot.StartTime.Date,
-                TimeOfDay = new TimeOfDay { EarliestArrivalTime = drsAppointmentSlot.StartTime, LatestArrivalTime = drsAppointmentSlot.EndTime }
+                StartTime = drsAppointmentSlot.StartTime,
+                EndTime = drsAppointmentSlot.EndTime
             };
     }
 }

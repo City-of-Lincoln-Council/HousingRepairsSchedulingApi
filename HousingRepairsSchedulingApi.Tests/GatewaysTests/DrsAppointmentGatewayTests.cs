@@ -4,10 +4,10 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Domain;
     using Domain.Drs;
     using FluentAssertions;
     using Gateways;
-    using HACT.Dtos;
     using Moq;
     using Services.Drs;
     using Xunit;
@@ -184,7 +184,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             var actualAppointments = await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
 
             // Assert
-            Assert.Equal(RequiredNumberOfAppointmentDays, actualAppointments.Select(x => x.Date).Distinct().Count());
+            Assert.Equal(RequiredNumberOfAppointmentDays, actualAppointments.Select(x => x.StartTime.Date).Distinct().Count());
         }
 
         public static IEnumerable<object[]> DrsServiceHasFiveAvailableAppointmentsTestData()
@@ -319,23 +319,15 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 
             var expected = new[]
                 {
-                    new Appointment
+                    new AppointmentSlot
                     {
-                        Date = new DateTime(2022, 1, 17),
-                        TimeOfDay = new TimeOfDay
-                        {
-                            EarliestArrivalTime = new DateTime(2022, 1, 17, 8, 0, 0),
-                            LatestArrivalTime = new DateTime(2022, 1, 17, 12, 0, 0),
-                        }
+                        StartTime = new DateTime(2022, 1, 17, 8, 0, 0),
+                        EndTime = new DateTime(2022, 1, 17, 12, 0, 0),
                     },
-                    new Appointment
+                    new AppointmentSlot
                     {
-                        Date = new DateTime(2022, 1, 17),
-                        TimeOfDay = new TimeOfDay
-                        {
-                            EarliestArrivalTime = new DateTime(2022, 1, 17, 12, 0, 0),
-                            LatestArrivalTime = new DateTime(2022, 1, 17, 16, 0, 0),
-                        }
+                        StartTime = new DateTime(2022, 1, 17, 12, 0, 0),
+                        EndTime = new DateTime(2022, 1, 17, 16, 0, 0),
                     },
                 };
 

@@ -5,8 +5,8 @@ namespace HousingRepairsSchedulingApi.Gateways
     using System.Linq;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
+    using Domain;
     using Domain.Drs;
-    using HACT.Dtos;
     using Services.Drs;
 
     public class DrsAppointmentGateway : IAppointmentsGateway
@@ -29,7 +29,7 @@ namespace HousingRepairsSchedulingApi.Gateways
             this.appointmentLeadTimeInDays = appointmentLeadTimeInDays;
         }
 
-        public async Task<IEnumerable<Appointment>> GetAvailableAppointments(string sorCode, string locationId,
+        public async Task<IEnumerable<AppointmentSlot>> GetAvailableAppointments(string sorCode, string locationId,
             DateTime? fromDate = null)
         {
             Guard.Against.NullOrWhiteSpace(sorCode, nameof(sorCode));
@@ -49,7 +49,7 @@ namespace HousingRepairsSchedulingApi.Gateways
                 earliestDate = earliestDate.AddDays(appointmentSearchTimeSpanInDays);
             }
 
-            var result = drsAppointmentSlots.Select(x => x.ToHactAppointment());
+            var result = drsAppointmentSlots.Select(x => x.ToAppointmentSlot());
 
             return result;
         }
