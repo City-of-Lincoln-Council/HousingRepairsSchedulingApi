@@ -7,5 +7,6 @@ namespace HousingRepairsSchedulingApi.Services.Drs
         public Uri ApiAddress { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+        public int SearchTimeSpanInDays { get; set; } = 14;
     }
 }

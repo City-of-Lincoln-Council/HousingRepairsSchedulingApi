@@ -2,6 +2,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
     using Domain.Drs;
@@ -9,6 +10,11 @@ namespace HousingRepairsSchedulingApi.Services.Drs
 
     public class DrsService : IDrsService
     {
+        private const string DrsContract = "0";
+        private const string DummyPrimaryOrderNumber = "HousingRepairsOnlineDummyPrimaryOrderNumber";
+        private const string DummyUserId = "HousingRepairsOnlineUserId";
+        private const string Priority = "Priority 20 Day";
+
         private readonly SOAP drsSoapClient;
         private readonly IOptions<DrsOptions> drsOptions;
 
@@ -23,7 +29,51 @@ namespace HousingRepairsSchedulingApi.Services.Drs
             this.drsOptions = drsOptions;
         }
 
-        public Task<IEnumerable<DrsAppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate) => throw new NotImplementedException();
+        public async Task<IEnumerable<DrsAppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate)
+        {
+            await EnsureSessionOpened();
+
+            var checkAvailability = new xmbCheckAvailability
+            {
+                sessionId = this.sessionId,
+                periodBegin = earliestDate,
+                periodBeginSpecified = true,
+                periodEnd = earliestDate.AddDays(drsOptions.Value.SearchTimeSpanInDays - 1),
+                periodEndSpecified = true,
+                theOrder = new order
+                {
+                    userId = DummyUserId,
+                    contract = DrsContract,
+                    locationID = locationId,
+                    primaryOrderNumber = DummyPrimaryOrderNumber,
+                    priority = Priority,
+                    theBookingCodes = new[]{
+                        new bookingCode {
+                            bookingCodeSORCode = sorCode,
+                            itemNumberWithinBooking = "1",
+                            primaryOrderNumber = DummyPrimaryOrderNumber,
+                            quantity = "1",
+                        }
+                    }
+                }
+            };
+
+            var checkAvailabilityResponse = await this.drsSoapClient.checkAvailabilityAsync(new checkAvailability(checkAvailability));
+
+            var drsAppointmentSlots = checkAvailabilityResponse.@return.theSlots
+                .Where(x => x.slotsForDay != null)
+                .SelectMany(x =>
+                    x.slotsForDay.Where(y => y.available == availableValue.YES).Select(y =>
+                        new DrsAppointmentSlot
+                        {
+                            StartTime = y.beginDate,
+                            EndTime = y.endDate,
+                        }
+                    )
+            );
+
+            return drsAppointmentSlots;
+        }
 
         private async Task OpenSession()
         {
