@@ -12,6 +12,8 @@ namespace HousingRepairsSchedulingApi.Services.Drs
         private readonly SOAP drsSoapClient;
         private readonly IOptions<DrsOptions> drsOptions;
 
+        private string sessionId;
+
         public DrsService(SOAP drsSoapClient, IOptions<DrsOptions> drsOptions)
         {
             Guard.Against.Null(drsSoapClient, nameof(drsSoapClient));
@@ -22,5 +24,25 @@ namespace HousingRepairsSchedulingApi.Services.Drs
         }
 
         public Task<IEnumerable<DrsAppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate) => throw new NotImplementedException();
+
+        private async Task OpenSession()
+        {
+            var xmbOpenSession = new xmbOpenSession
+            {
+                login = drsOptions.Value.Login,
+                password = drsOptions.Value.Password
+            };
+            var response = await this.drsSoapClient.openSessionAsync(new openSession(xmbOpenSession));
+
+            sessionId = response.@return.sessionId;
+        }
+
+        private async Task EnsureSessionOpened()
+        {
+            if (this.sessionId == null)
+            {
+                await OpenSession();
+            }
+        }
     }
 }

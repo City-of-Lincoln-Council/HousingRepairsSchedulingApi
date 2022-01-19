@@ -90,6 +90,14 @@ namespace HousingRepairsSchedulingApi
             {
                 throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{nameof(DrsOptions.ApiAddress)} is a required configuration.");
             }
+            if (string.IsNullOrEmpty(drsOptionsConfiguration["Login"]))
+            {
+                throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{nameof(DrsOptions.Login)} is a required configuration.");
+            }
+            if (string.IsNullOrEmpty(drsOptionsConfiguration["Password"]))
+            {
+                throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{nameof(DrsOptions.Password)} is a required configuration.");
+            }
 
             services.Configure<DrsOptions>(drsOptionsConfiguration);
         }

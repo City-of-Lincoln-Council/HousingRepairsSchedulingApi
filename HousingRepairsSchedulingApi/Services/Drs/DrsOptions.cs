@@ -5,5 +5,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
     public class DrsOptions
     {
         public Uri ApiAddress { get; set; }
+        public string Login { get; set; }
+        public string Password { get; set; }
     }
 }
