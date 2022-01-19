@@ -27,7 +27,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "AUTHENTICATION_IDENTIFIER": "<REPLACE WITH A UNIQUE AUTHENTICATION IDENTIFIER>",
         "JWT_SECRET" : "<REPLACE WITH A SECRET>",
-        "DRS_URL" : "<REPLACE WITH DRS URL>"
+        "DrsOptions__ApiAddress" : "https://<REPLACE WITH DRS API ADDRESS>"
       }
     }
   }

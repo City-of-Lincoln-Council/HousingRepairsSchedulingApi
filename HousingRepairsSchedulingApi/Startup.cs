@@ -15,7 +15,10 @@ using Microsoft.OpenApi.Models;
 
 namespace HousingRepairsSchedulingApi
 {
+    using System.ServiceModel;
     using Gateways;
+    using Microsoft.Extensions.Options;
+    using Services.Drs;
     using UseCases;
 
     public class Startup
@@ -37,7 +40,16 @@ namespace HousingRepairsSchedulingApi
             services.AddControllers();
             services.AddTransient<IRetrieveAvailableAppointmentsUseCase, RetrieveAvailableAppointmentsUseCase>();
 
-            var drsUrl = GetEnvironmentVariable("DRS_URL");
+            this.ConfigureOptions(services);
+
+            services.AddScoped<SOAP>(sp =>
+            {
+                var drsOptions = sp.GetRequiredService<IOptions<DrsOptions>>();
+                return new SOAPClient(new BasicHttpsBinding(), new EndpointAddress(drsOptions.Value.ApiAddress));
+            });
+
+            services.AddTransient<IDrsService, DrsService>();
+
             services.AddTransient<IAppointmentsGateway, DummyAppointmentsGateway>();
 
             services.AddSwaggerGen(c =>
@@ -70,10 +82,16 @@ namespace HousingRepairsSchedulingApi
             });
         }
 
-        private static string GetEnvironmentVariable(string name)
+        private void ConfigureOptions(IServiceCollection services)
         {
-            return Environment.GetEnvironmentVariable(name) ??
-                   throw new InvalidOperationException($"Incorrect configuration: '{name}' environment variable must be set");
+            var drsOptionsConfiguration = this.Configuration.GetSection(nameof(DrsOptions));
+
+            if (string.IsNullOrEmpty(drsOptionsConfiguration["ApiAddress"]))
+            {
+                throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{nameof(DrsOptions.ApiAddress)} is a required configuration.");
+            }
+
+            services.Configure<DrsOptions>(drsOptionsConfiguration);
         }
     }
 }

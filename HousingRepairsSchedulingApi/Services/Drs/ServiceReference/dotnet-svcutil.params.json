@@ -1,0 +1,15 @@
+{
+  "providerId": "Microsoft.Tools.ServiceModel.Svcutil",
+  "version": "2.0.3",
+  "options": {
+    "inputs": [
+      "../soap.wsdl"
+    ],
+    "namespaceMappings": [
+      "*, HousingRepairsSchedulingApi.Services.Drs"
+    ],
+    "outputFile": "Reference.cs",
+    "targetFramework": "net5.0",
+    "typeReuseMode": "All"
+  }
+}
