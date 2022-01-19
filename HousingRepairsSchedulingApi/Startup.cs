@@ -50,7 +50,14 @@ namespace HousingRepairsSchedulingApi
 
             services.AddTransient<IDrsService, DrsService>();
 
-            services.AddTransient<IAppointmentsGateway, DummyAppointmentsGateway>();
+            services.AddTransient<IAppointmentsGateway, DrsAppointmentGateway>(sp =>
+                {
+                    var drsOptions = sp.GetRequiredService<IOptions<DrsOptions>>();
+                    var appointmentSearchTimeSpanInDays = drsOptions.Value.SearchTimeSpanInDays;
+                    return new DrsAppointmentGateway(sp.GetService<IDrsService>(),
+                        5, appointmentSearchTimeSpanInDays, 2);
+                }
+            );
 
             services.AddSwaggerGen(c =>
             {
