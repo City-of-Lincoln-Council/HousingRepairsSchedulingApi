@@ -45,7 +45,9 @@ namespace HousingRepairsSchedulingApi
             services.AddScoped<SOAP>(sp =>
             {
                 var drsOptions = sp.GetRequiredService<IOptions<DrsOptions>>();
-                return new SOAPClient(new BasicHttpsBinding(), new EndpointAddress(drsOptions.Value.ApiAddress));
+                var apiAddress = drsOptions.Value.ApiAddress;
+                var binding = CreateBinding(apiAddress);
+                return new SOAPClient(binding, new EndpointAddress(apiAddress));
             });
 
             services.AddTransient<IDrsService, DrsService>();
@@ -107,6 +109,27 @@ namespace HousingRepairsSchedulingApi
             }
 
             services.Configure<DrsOptions>(drsOptionsConfiguration);
+        }
+
+        private static HttpBindingBase CreateBinding(Uri uri)
+        {
+            HttpBindingBase binding;
+            var uriScheme = uri.Scheme;
+
+            if (uriScheme == Uri.UriSchemeHttps)
+            {
+                binding = new BasicHttpsBinding();
+            }
+            else if (uriScheme == Uri.UriSchemeHttp)
+            {
+                binding = new BasicHttpBinding();
+            }
+            else
+            {
+                throw new NotSupportedException($"Unsupported URI scheme '{uriScheme}' used by '{uri}'");
+            }
+
+            return binding;
         }
     }
 }
