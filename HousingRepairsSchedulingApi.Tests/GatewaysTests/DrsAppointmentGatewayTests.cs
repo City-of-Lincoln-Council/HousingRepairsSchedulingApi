@@ -30,9 +30,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
-#pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public void GivenNullDrsServiceParameter_WhenInstantiating_ThenArgumentNullExceptionIsThrown()
-#pragma warning restore xUnit1026
+#pragma warning restore CA1707
         {
             // Arrange
 
@@ -50,9 +50,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
-#pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public void GivenInvalidRequiredNumberOfAppointmentsParameter_WhenInstantiating_ThenArgumentExceptionIsThrown(int invalidRequiredNumberOfAppointments)
-#pragma warning restore xUnit1026
+#pragma warning restore CA1707
         {
             // Arrange
 
@@ -68,9 +68,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
-#pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public void GivenInvalidAppointmentLeadTimeInDaysParameter_WhenInstantiating_ThenArgumentExceptionIsThrown()
-#pragma warning restore xUnit1026
+#pragma warning restore CA1707
         {
             // Arrange
 
@@ -88,9 +88,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [InlineData(0)]
         [InlineData(-1)]
-#pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public void GivenInvalidAppointmentSearchTimeSpanInDaysParameter_WhenInstantiating_ThenArgumentExceptionIsThrown(int invalidAppointmentSearchTimeSpanInDays)
-#pragma warning restore xUnit1026
+#pragma warning restore CA1707
         {
             // Arrange
 
@@ -115,7 +115,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [MemberData(nameof(InvalidArgumentTestData))]
 #pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public async void GivenInvalidSorCode_WhenGettingAvailableAppointments_ThenExceptionIsThrown<T>(T exception, string sorCode) where T : Exception
+#pragma warning restore CA1707
 #pragma warning restore xUnit1026
         {
             // Arrange
@@ -130,7 +132,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [MemberData(nameof(InvalidArgumentTestData))]
 #pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public async void GivenInvalidLocationId_WhenGettingAvailableAppointments_ThenExceptionIsThrown<T>(T exception, string locationId) where T : Exception
+#pragma warning restore CA1707
 #pragma warning restore xUnit1026
         {
             // Arrange
@@ -144,9 +148,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
-#pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public async void GivenNullFromDate_WhenGettingAvailableAppointments_ThenNoExceptionIsThrown()
-#pragma warning restore xUnit1026
+#pragma warning restore CA1707
         {
             // Arrange
             var sorCode = "sorCode";
@@ -164,7 +168,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 
         [Theory]
         [MemberData(nameof(DrsServiceHasFiveAvailableAppointmentsTestData))]
+#pragma warning disable CA1707
         public async void GivenDrsServiceHasFiveDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<DrsAppointmentSlot>> appointmentReturnSequence)
+#pragma warning restore CA1707
         {
             // Arrange
             var sorCode = "sorCode";
@@ -299,7 +305,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
+#pragma warning disable CA1707
         public async void GivenDrsServiceHasAvailableAppointmentsThatAreNotRequired_WhenGettingAvailableAppointments_ThenOnlyValidAppointmentsAreReturned()
+#pragma warning restore CA1707
         {
             // Arrange
             var sorCode = "sorCode";
@@ -339,7 +347,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
+#pragma warning disable CA1707
         public async void GivenDrsServiceRequiresMultipleRequests_WhenGettingAvailableAppointments_ThenCorrectTimeSpanIncrementApplied()
+#pragma warning restore CA1707
         {
             // Arrange
             var sorCode = "sorCode";

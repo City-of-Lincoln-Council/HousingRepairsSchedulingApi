@@ -23,7 +23,9 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
         [Theory]
         [MemberData(nameof(InvalidArgumentTestData))]
 #pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public async void GivenAnInvalidSorCode_WhenExecute_ThenExceptionIsThrown<T>(T exception, string sorCode) where T : Exception
+#pragma warning restore CA1707
 #pragma warning restore xUnit1026
         {
             // Arrange
@@ -39,7 +41,9 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
         [Theory]
         [MemberData(nameof(InvalidArgumentTestData))]
 #pragma warning disable xUnit1026
+#pragma warning disable CA1707
         public async void GivenAnInvalidLocationId_WhenExecute_ThenExceptionIsThrown<T>(T exception, string locationId) where T : Exception
+#pragma warning restore CA1707
 #pragma warning restore xUnit1026
         {
             // Arrange
@@ -75,7 +79,9 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
         }
 
         [Fact]
+#pragma warning disable CA1707
         public async void GivenParameters_WhenExecute_ThenGetAvailableAppointmentsGatewayIsCalled()
+#pragma warning restore CA1707
         {
             const string uprn = "uprn";
             const string locationId = "locationId";

@@ -32,7 +32,9 @@ namespace HousingRepairsSchedulingApi.Tests.ControllersTests
         }
 
         [Fact]
+#pragma warning disable CA1707
         public async Task GivenAFromDate_WhenRequestingAvailableAppointment_ThenResultsAreReturned()
+#pragma warning restore CA1707
         {
             // Arrange
             const string sorCode = "sorCode";
