@@ -23,5 +23,16 @@ namespace HousingRepairsSchedulingApi.Controllers
             var result = await retrieveAvailableAppointmentsUseCase.Execute(sorCode, locationId, fromDate);
             return this.Ok(result);
         }
+
+        [HttpPost]
+        [Route("BookAppointment")]
+        public async Task<IActionResult> BookAppointment([FromQuery] string bookingReference,
+            [FromQuery] string sorCode,
+            [FromQuery] string locationId,
+            [FromQuery] DateTime startDateTime,
+            [FromQuery] DateTime endDateTime)
+        {
+            return this.Ok();
+        }
     }
 }

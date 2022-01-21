@@ -11,6 +11,8 @@ namespace HousingRepairsSchedulingApi.Tests.ControllersTests
 
     public class AppointmentsControllerTests : ControllerTests
     {
+        private const string SorCode = "SOR Code";
+        private const string LocationId = "locationId";
         private AppointmentsController systemUndertest;
         private Mock<IRetrieveAvailableAppointmentsUseCase> availableAppointmentsUseCaseMock;
 
@@ -21,14 +23,22 @@ namespace HousingRepairsSchedulingApi.Tests.ControllersTests
         }
 
         [Fact]
-        public async Task TestEndpoint()
+        public async Task TestAvailableAppointmentsEndpoint()
         {
-            const string sorCode = "uprn";
-            const string locationId = "locationId";
-
-            var result = await this.systemUndertest.AvailableAppointments(sorCode, locationId);
+            var result = await this.systemUndertest.AvailableAppointments(SorCode, LocationId);
             GetStatusCode(result).Should().Be(200);
-            availableAppointmentsUseCaseMock.Verify(x => x.Execute(sorCode, locationId, null), Times.Once);
+            availableAppointmentsUseCaseMock.Verify(x => x.Execute(SorCode, LocationId, null), Times.Once);
+        }
+
+        [Fact]
+        public async Task TestBookAppointmentEndpoint()
+        {
+            const string bookingReference = "bookingReference";
+            var startDateTime = It.IsAny<DateTime>();
+            var endDateTime = It.IsAny<DateTime>();
+
+            var result = await this.systemUndertest.BookAppointment(bookingReference, SorCode, LocationId, startDateTime, endDateTime);
+            GetStatusCode(result).Should().Be(200);
         }
 
         [Fact]
