@@ -15,11 +15,15 @@ namespace HousingRepairsSchedulingApi.Tests.ControllersTests
         private const string LocationId = "locationId";
         private AppointmentsController systemUndertest;
         private Mock<IRetrieveAvailableAppointmentsUseCase> availableAppointmentsUseCaseMock;
+        private Mock<IBookAppointmentUseCase> bookAppointmentUseCaseMock;
 
         public AppointmentsControllerTests()
         {
             availableAppointmentsUseCaseMock = new Mock<IRetrieveAvailableAppointmentsUseCase>();
-            this.systemUndertest = new AppointmentsController(availableAppointmentsUseCaseMock.Object);
+            bookAppointmentUseCaseMock = new Mock<IBookAppointmentUseCase>();
+            this.systemUndertest = new AppointmentsController(
+                availableAppointmentsUseCaseMock.Object,
+                bookAppointmentUseCaseMock.Object);
         }
 
         [Fact]

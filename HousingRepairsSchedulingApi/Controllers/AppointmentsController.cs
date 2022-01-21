@@ -10,10 +10,13 @@ namespace HousingRepairsSchedulingApi.Controllers
     public class AppointmentsController : ControllerBase
     {
         private readonly IRetrieveAvailableAppointmentsUseCase retrieveAvailableAppointmentsUseCase;
+        private readonly IBookAppointmentUseCase bookAppointmentUseCase;
 
-        public AppointmentsController(IRetrieveAvailableAppointmentsUseCase retrieveAvailableAppointmentsUseCase)
+        public AppointmentsController(IRetrieveAvailableAppointmentsUseCase retrieveAvailableAppointmentsUseCase,
+            IBookAppointmentUseCase bookAppointmentUseCase)
         {
             this.retrieveAvailableAppointmentsUseCase = retrieveAvailableAppointmentsUseCase;
+            this.bookAppointmentUseCase = bookAppointmentUseCase;
         }
 
         [HttpGet]
@@ -32,7 +35,9 @@ namespace HousingRepairsSchedulingApi.Controllers
             [FromQuery] DateTime startDateTime,
             [FromQuery] DateTime endDateTime)
         {
-            return this.Ok();
+            var result = await bookAppointmentUseCase.Execute(bookingReference, sorCode, locationId, startDateTime, endDateTime);
+
+            return this.Ok(result);
         }
     }
 }
