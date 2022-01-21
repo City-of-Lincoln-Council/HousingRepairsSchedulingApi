@@ -18,6 +18,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         private const int RequiredNumberOfAppointmentDays = 5;
         private const int AppointmentSearchTimeSpanInDays = 14;
         private const int AppointmentLeadTimeInDays = 0;
+        private const string BookingReference = "Booking Reference";
+        private const string SorCode = "SOR Code";
+        private const string LocationId = "locationId";
 
         public DrsAppointmentGatewayTests()
         {
@@ -371,6 +374,93 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 
             // Assert
             drsServiceMock.VerifyAll();
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenAnInvalidBookingReference_WhenExecute_ThenExceptionIsThrown<T>(T exception, string bookingReference) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.BookAppointment(bookingReference, SorCode, LocationId,
+                It.IsAny<DateTime>(), It.IsAny<DateTime>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenAnInvalidSorCode_WhenExecute_ThenExceptionIsThrown<T>(T exception, string sorCode) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.BookAppointment(BookingReference, sorCode, LocationId,
+                It.IsAny<DateTime>(), It.IsAny<DateTime>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenAnInvalidLocationId_WhenExecute_ThenExceptionIsThrown<T>(T exception, string locationId) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.BookAppointment(BookingReference, SorCode, locationId,
+                It.IsAny<DateTime>(), It.IsAny<DateTime>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenAnEndDateEarlierThanTheStartDate_WhenExecute_ThenInvalidExceptionIsThrown()
+#pragma warning restore CA1707
+        {
+            // Arrange
+            var startDate = new DateTime(2022, 1, 21);
+            var endDate = startDate.AddDays(-1);
+
+            // Act
+            Func<Task> act = async () =>
+                await systemUnderTest.BookAppointment(BookingReference, SorCode, LocationId, startDate, endDate);
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenValidArguments_WhenExecute_ThenBookingIdIsReturned()
+#pragma warning restore CA1707
+        {
+            // Arrange
+
+            // Act
+            var startDateTime = It.IsAny<DateTime>();
+            var actual = await systemUnderTest.BookAppointment(BookingReference, SorCode, LocationId,
+                startDateTime, startDateTime.AddDays(1));
+
+            // Assert
+            Assert.Equal(BookingReference, actual);
         }
     }
 }

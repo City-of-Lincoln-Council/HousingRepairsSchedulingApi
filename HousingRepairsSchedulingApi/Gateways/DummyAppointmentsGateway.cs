@@ -42,5 +42,9 @@ namespace HousingRepairsSchedulingApi.Gateways
             var orderedAppointments = unorderedAppointments.OrderBy(x => x.StartTime);
             return orderedAppointments;
         }
+
+        public Task<string> BookAppointment(string bookingReference, string sorCode, string locationId, DateTime startDateTime,
+            DateTime endDateTime) =>
+            throw new NotImplementedException();
     }
 }

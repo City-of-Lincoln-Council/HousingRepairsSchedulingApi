@@ -4,6 +4,7 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using FluentAssertions;
+    using Gateways;
     using Moq;
     using UseCases;
     using Xunit;
@@ -15,10 +16,12 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
         private const string LocationId = "locationId";
 
         private BookAppointmentUseCase systemUnderTest;
+        private Mock<IAppointmentsGateway> appointmentsGatewayMock;
 
         public BookAppointmentUseCaseTests()
         {
-            systemUnderTest = new BookAppointmentUseCase();
+            appointmentsGatewayMock = new Mock<IAppointmentsGateway>();
+            systemUnderTest = new BookAppointmentUseCase(appointmentsGatewayMock.Object);
         }
 
         [Theory]
@@ -105,6 +108,14 @@ namespace HousingRepairsSchedulingApi.Tests.UseCasesTests
 #pragma warning restore CA1707
         {
             // Arrange
+            this.appointmentsGatewayMock.Setup(x => x.BookAppointment(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DateTime>(),
+                    It.IsAny<DateTime>()
+                )
+            ).ReturnsAsync(BookingReference);
 
             // Act
             var startDateTime = It.IsAny<DateTime>();
