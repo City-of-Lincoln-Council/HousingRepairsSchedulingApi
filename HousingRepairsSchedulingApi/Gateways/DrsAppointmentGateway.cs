@@ -59,8 +59,9 @@ namespace HousingRepairsSchedulingApi.Gateways
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
             Guard.Against.OutOfRange(endDateTime, nameof(endDateTime), startDateTime, DateTime.MaxValue);
 
-            // createOrder
-            // scheduleBooking
+            var bookingId = await drsService.CreateOrder(bookingReference, sorCode, locationId);
+
+            await drsService.ScheduleBooking(bookingReference, bookingId, startDateTime, endDateTime);
 
             return bookingReference;
         }

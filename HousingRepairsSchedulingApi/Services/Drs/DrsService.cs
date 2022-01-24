@@ -13,7 +13,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
         private const string DrsContract = "0";
         private const string DummyPrimaryOrderNumber = "HousingRepairsOnlineDummyPrimaryOrderNumber";
         private const string DummyUserId = "HousingRepairsOnlineUserId";
-        private const string Priority = "Priority 20 Day";
+        private const string Priority = "Priority 20 Days";
 
         private readonly SOAP drsSoapClient;
         private readonly IOptions<DrsOptions> drsOptions;
@@ -73,6 +73,68 @@ namespace HousingRepairsSchedulingApi.Services.Drs
             );
 
             return appointmentSlots;
+        }
+
+        public async Task<int> CreateOrder(string bookingReference, string sorCode, string locationId)
+        {
+            Guard.Against.NullOrWhiteSpace(bookingReference, nameof(bookingReference));
+            Guard.Against.NullOrWhiteSpace(sorCode, nameof(sorCode));
+            Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
+
+            await EnsureSessionOpened();
+
+            var createOrder = new xmbCreateOrder
+            {
+                sessionId = this.sessionId,
+                theOrder = new order
+                {
+                    contract = DrsContract,
+                    locationID = locationId,
+                    orderComments = " ",
+                    primaryOrderNumber = bookingReference,
+                    priority = Priority,
+                    targetDate = DateTime.Today.AddDays(20),
+                    userId = DummyUserId,
+                    theBookingCodes = new[]
+                    {
+                        new bookingCode
+                        {
+                            bookingCodeSORCode = sorCode,
+                            itemNumberWithinBooking = "1",
+                            primaryOrderNumber = bookingReference,
+                            quantity = "1",
+                        }
+                    }
+                }
+            };
+
+            var createOrderResponse = await drsSoapClient.createOrderAsync(new createOrder(createOrder));
+            var result = createOrderResponse.@return.theOrder.theBookings[0].bookingId;
+
+            return result;
+        }
+
+        public async Task ScheduleBooking(string bookingReference, int bookingId, DateTime startDateTime, DateTime endDateTime)
+        {
+            Guard.Against.NullOrWhiteSpace(bookingReference, nameof(bookingReference));
+            Guard.Against.OutOfRange(endDateTime, nameof(endDateTime), startDateTime, DateTime.MaxValue);
+
+            await EnsureSessionOpened();
+
+            var scheduleBooking = new xmbScheduleBooking
+            {
+                sessionId = sessionId,
+                theBooking = new booking
+                {
+                    bookingId = bookingId,
+                    contract = DrsContract,
+                    primaryOrderNumber = bookingReference,
+                    planningWindowStart = startDateTime,
+                    planningWindowEnd = endDateTime,
+                }
+            };
+
+            _ = await this.drsSoapClient.scheduleBookingAsync(new scheduleBooking(scheduleBooking));
         }
 
         private async Task OpenSession()

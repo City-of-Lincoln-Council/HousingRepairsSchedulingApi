@@ -4,6 +4,8 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using System.Linq.Expressions;
+    using System.Threading.Tasks;
     using Domain;
     using FluentAssertions;
     using Microsoft.Extensions.Options;
@@ -16,6 +18,8 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
     {
         private const string SorCode = "SorCode";
         private const string LocationId = "LocationId";
+        private const string BookingReference = "BookingReference";
+        private const int BookingId = 12345;
 
         private Mock<SOAP> soapMock;
 
@@ -174,6 +178,140 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
 
             // Assert
             act.Should().NotThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenInvalidBookingReference_WhenCreatingAnOrder_ThenExceptionIsThrown<T>(T exception, string bookingReference) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.CreateOrder(bookingReference, It.IsAny<string>(), It.IsAny<string>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenInvalidSorCode_WhenCreatingAnOrder_ThenExceptionIsThrown<T>(T exception, string sorCode) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.CreateOrder(BookingReference, sorCode, It.IsAny<string>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenInvalidLocationId_WhenCreatingAnOrder_ThenExceptionIsThrown<T>(T exception, string locationId) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.CreateOrder(BookingReference, SorCode, locationId);
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenCreateOrderResponse_WhenCreatingAnOrder_ThenBookingIdIsPresentInTheResponse()
+#pragma warning restore CA1707
+        {
+            // Arrange
+            this.soapMock.Setup(x => x.createOrderAsync(It.IsAny<createOrder>()))
+                .ReturnsAsync(new createOrderResponse(new xmbCreateOrderResponse
+                {
+                    theOrder = new order { theBookings = new[] { new booking { bookingId = BookingId } } }
+                }));
+
+            // Act
+            var actual = await systemUnderTest.CreateOrder(BookingReference, SorCode, LocationId);
+
+            // Assert
+            Assert.Equal(BookingId, actual);
+
+        }
+
+
+        [Theory]
+        [MemberData(nameof(InvalidArgumentTestData))]
+#pragma warning disable xUnit1026
+#pragma warning disable CA1707
+        public async void GivenInvalidBookingReference_WhenSchedulingABooking_ThenExceptionIsThrown<T>(T exception, string bookingReference) where T : Exception
+#pragma warning restore CA1707
+#pragma warning restore xUnit1026
+        {
+            // Arrange
+
+            // Act
+            Func<Task> act = async () => await systemUnderTest.ScheduleBooking(bookingReference, It.IsAny<int>(),
+                It.IsAny<DateTime>(), It.IsAny<DateTime>());
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<T>();
+        }
+
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenAnEndDateEarlierThanTheStartDate_WhenExecute_ThenInvalidExceptionIsThrown()
+#pragma warning restore CA1707
+        {
+            // Arrange
+            var startDate = new DateTime(2022, 1, 21);
+            var endDate = startDate.AddDays(-1);
+
+            // Act
+            Func<Task> act = async () =>
+                await systemUnderTest.ScheduleBooking(BookingReference, BookingId, startDate, endDate);
+
+            // Assert
+            await act.Should().ThrowExactlyAsync<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
+#pragma warning disable CA1707
+        public async void GivenScheduleBookingResponse_WhenSchedulingABooking_ThenDrsSoapScheduleBookingIsCalled()
+#pragma warning restore CA1707
+        {
+            // Arrange
+            Expression<Action<SOAP>> schedulingBookingExpression = x => x.scheduleBookingAsync(It.IsAny<scheduleBooking>());
+            soapMock.Setup(schedulingBookingExpression);
+            var startDate = new DateTime(2022, 1, 21);
+            var endDate = startDate.AddDays(1);
+
+            // Act
+            await systemUnderTest.ScheduleBooking(BookingReference, BookingId, startDate, endDate);
+
+            // Assert
+            soapMock.Verify(schedulingBookingExpression);
+        }
+
+        public static IEnumerable<object[]> InvalidArgumentTestData()
+        {
+            yield return new object[] { new ArgumentNullException(), null };
+            yield return new object[] { new ArgumentException(), "" };
+            yield return new object[] { new ArgumentException(), " " };
         }
     }
 }

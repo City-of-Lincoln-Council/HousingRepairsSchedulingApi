@@ -8,5 +8,9 @@ namespace HousingRepairsSchedulingApi.Services.Drs
     public interface IDrsService
     {
         Task<IEnumerable<AppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate);
+
+        Task<int> CreateOrder(string bookingReference, string sorCode, string locationId);
+
+        Task ScheduleBooking(string bookingReference, int bookingId, DateTime startDateTime, DateTime endDateTime);
     }
 }

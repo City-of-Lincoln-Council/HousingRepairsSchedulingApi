@@ -449,10 +449,15 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 
         [Fact]
 #pragma warning disable CA1707
-        public async void GivenValidArguments_WhenExecute_ThenBookingIdIsReturned()
+        public async void GivenValidArguments_WhenExecute_ThenBookingReferenceIsReturned()
 #pragma warning restore CA1707
         {
             // Arrange
+            const int bookingId = 12345;
+
+            drsServiceMock.Setup(x =>
+                x.CreateOrder(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())
+            ).ReturnsAsync(bookingId);
 
             // Act
             var startDateTime = It.IsAny<DateTime>();
