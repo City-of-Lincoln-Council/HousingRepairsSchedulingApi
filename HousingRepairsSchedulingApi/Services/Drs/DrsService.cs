@@ -6,6 +6,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
     using Domain;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
     public class DrsService : IDrsService
@@ -59,7 +60,11 @@ namespace HousingRepairsSchedulingApi.Services.Drs
             };
 
             var checkAvailabilityResponse = await this.drsSoapClient.checkAvailabilityAsync(new checkAvailability(checkAvailability));
-
+            if (checkAvailabilityResponse.@return.status != responseStatus.success)
+            {
+                throw new Exception(
+                    $"{checkAvailabilityResponse.@return.status}: {checkAvailabilityResponse.@return.errorMsg}");
+            }
             var appointmentSlots = checkAvailabilityResponse.@return.theSlots
                 .Where(x => x.slotsForDay != null)
                 .SelectMany(x =>
