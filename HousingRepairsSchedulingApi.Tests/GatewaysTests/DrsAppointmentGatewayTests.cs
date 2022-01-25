@@ -147,6 +147,32 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Fact]
+        public async void
+            GivenLocationIdWithTrailingWhitespace_WhenGettingAvailableAppointments_ThenSanitisedLocationIdIsUsedForRequests()
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "12345    ";
+            drsServiceMock.Setup(x => x.CheckAvailability(It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<DateTime>()))
+                .ReturnsAsync(new[] { new AppointmentSlot() });
+            systemUnderTest = new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                1,
+                AppointmentSearchTimeSpanInDays,
+                AppointmentLeadTimeInDays);
+
+            // Act
+            _ = await systemUnderTest.GetAvailableAppointments(sorCode, locationId);
+
+            // Assert
+            drsServiceMock.Verify(x => x.CheckAvailability(It.IsAny<string>(),
+                locationId.TrimEnd(),
+                It.IsAny<DateTime>()));
+        }
+
+        [Fact]
 #pragma warning disable CA1707
         public async void GivenNullFromDate_WhenGettingAvailableAppointments_ThenNoExceptionIsThrown()
 #pragma warning restore CA1707
