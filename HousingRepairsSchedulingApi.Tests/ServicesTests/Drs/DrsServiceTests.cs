@@ -12,7 +12,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
     using Xunit;
 
     [SuppressMessage("Naming", "CA1707", MessageId = "Identifiers should not contain underscores")]
-    public class DrsServiceTests
+    class DrsServiceTests
     {
         private const string SorCode = "SorCode";
         private const string LocationId = "LocationId";
