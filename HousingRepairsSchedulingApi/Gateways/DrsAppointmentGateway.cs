@@ -34,12 +34,14 @@ namespace HousingRepairsSchedulingApi.Gateways
             Guard.Against.NullOrWhiteSpace(sorCode, nameof(sorCode));
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
 
+            var sanitisedLocationId = locationId.TrimEnd();
+
             var earliestDate = fromDate ?? DateTime.Today.AddDays(appointmentLeadTimeInDays);
             var appointmentSlots = Enumerable.Empty<AppointmentSlot>();
 
             while (appointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
             {
-                var appointments = await drsService.CheckAvailability(sorCode, locationId, earliestDate);
+                var appointments = await drsService.CheckAvailability(sorCode, sanitisedLocationId, earliestDate);
                 appointments = appointments.Where(x =>
                     !(x.StartTime.Hour == 9 && x.EndTime.Minute == 30
                       && x.EndTime.Hour == 14 && x.EndTime.Minute == 30)
