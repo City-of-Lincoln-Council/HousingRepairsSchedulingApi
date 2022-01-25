@@ -6,7 +6,6 @@ namespace HousingRepairsSchedulingApi.Gateways
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
     using Domain;
-    using Domain.Drs;
     using Services.Drs;
 
     public class DrsAppointmentGateway : IAppointmentsGateway
@@ -36,22 +35,20 @@ namespace HousingRepairsSchedulingApi.Gateways
             Guard.Against.NullOrWhiteSpace(locationId, nameof(locationId));
 
             var earliestDate = fromDate ?? DateTime.Today.AddDays(appointmentLeadTimeInDays);
-            var drsAppointmentSlots = Enumerable.Empty<DrsAppointmentSlot>();
+            var appointmentSlots = Enumerable.Empty<AppointmentSlot>();
 
-            while (drsAppointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
+            while (appointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
             {
                 var appointments = await drsService.CheckAvailability(sorCode, locationId, earliestDate);
                 appointments = appointments.Where(x =>
                     !(x.StartTime.Hour == 9 && x.EndTime.Minute == 30
                       && x.EndTime.Hour == 14 && x.EndTime.Minute == 30)
                 );
-                drsAppointmentSlots = drsAppointmentSlots.Concat(appointments);
+                appointmentSlots = appointmentSlots.Concat(appointments);
                 earliestDate = earliestDate.AddDays(appointmentSearchTimeSpanInDays);
             }
 
-            var result = drsAppointmentSlots.Select(x => x.ToAppointmentSlot());
-
-            return result;
+            return appointmentSlots;
         }
     }
 }

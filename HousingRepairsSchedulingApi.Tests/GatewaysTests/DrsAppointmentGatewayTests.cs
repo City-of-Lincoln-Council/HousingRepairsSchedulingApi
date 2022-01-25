@@ -5,7 +5,6 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
     using System.Linq;
     using System.Threading.Tasks;
     using Domain;
-    using Domain.Drs;
     using FluentAssertions;
     using Gateways;
     using Moq;
@@ -169,7 +168,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [MemberData(nameof(DrsServiceHasFiveAvailableAppointmentsTestData))]
 #pragma warning disable CA1707
-        public async void GivenDrsServiceHasFiveDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<DrsAppointmentSlot>> appointmentReturnSequence)
+        public async void GivenDrsServiceHasFiveDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<AppointmentSlot>> appointmentReturnSequence)
 #pragma warning restore CA1707
         {
             // Arrange
@@ -224,7 +223,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             {
                 CreateAppointmentsForDay(new DateTime(2022, 1, 18), true)
                     .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), true)),
-                Array.Empty<DrsAppointmentSlot>(),
+                Array.Empty<AppointmentSlot>(),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 20), true)
                     .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 21), true)),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 22), true),
@@ -249,12 +248,12 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             }};
         }
 
-        private static IEnumerable<DrsAppointmentSlot> CreateAppointmentsForDay(DateTime dateTime,
+        private static IEnumerable<AppointmentSlot> CreateAppointmentsForDay(DateTime dateTime,
             bool include0800To1200 = false,
             bool include1200To1600 = false,
             bool include0930To1430 = false)
         {
-            var result = new List<DrsAppointmentSlot>();
+            var result = new List<AppointmentSlot>();
 
             if (include0800To1200)
             {
@@ -292,13 +291,13 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             return result;
         }
 
-        private static DrsAppointmentSlot[] CreateAppointmentsForSequentialDays(DateTime firstDate, int numberOfDays)
+        private static AppointmentSlot[] CreateAppointmentsForSequentialDays(DateTime firstDate, int numberOfDays)
         {
             var appointments = Enumerable.Range(0, numberOfDays).Select(x => CreateAppointmentForDay(firstDate.AddDays(x))).ToArray();
 
             return appointments;
 
-            DrsAppointmentSlot CreateAppointmentForDay(DateTime date)
+            AppointmentSlot CreateAppointmentForDay(DateTime date)
             {
                 return CreateAppointmentsForDay(date, true).Single();
             }

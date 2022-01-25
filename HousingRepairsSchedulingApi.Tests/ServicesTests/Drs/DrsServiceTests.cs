@@ -4,7 +4,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-    using Domain.Drs;
+    using Domain;
     using FluentAssertions;
     using Microsoft.Extensions.Options;
     using Moq;
@@ -65,7 +65,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
         [Theory]
         [MemberData(nameof(UnavailableSlotsTestData))]
         public async void
-            GivenDrsCheckAvailabilityResponseContainsUnavailableSlots_WhenCheckingAvailability_ThenOnlyAvailableSlotsAreReturned(DateTime searchDate, daySlotsInfo[] daySlots, IEnumerable<DrsAppointmentSlot> expected)
+            GivenDrsCheckAvailabilityResponseContainsUnavailableSlots_WhenCheckingAvailability_ThenOnlyAvailableSlotsAreReturned(DateTime searchDate, daySlotsInfo[] daySlots, IEnumerable<AppointmentSlot> expected)
         {
             // Arrange
 
@@ -74,10 +74,10 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
                     new xmbCheckAvailabilityResponse { theSlots = daySlots }));
 
             // Act
-            var drsAppointmentSlots = await systemUnderTest.CheckAvailability(SorCode, LocationId, searchDate);
+            var appointmentSlots = await systemUnderTest.CheckAvailability(SorCode, LocationId, searchDate);
 
             // Assert
-            drsAppointmentSlots.Should().BeEquivalentTo(expected);
+            appointmentSlots.Should().BeEquivalentTo(expected);
         }
 
         public static IEnumerable<object[]> UnavailableSlotsTestData()
@@ -103,7 +103,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
                         }
                     }
                 },
-                Enumerable.Empty<DrsAppointmentSlot>()
+                Enumerable.Empty<AppointmentSlot>()
             };
 
             yield return new object[]
@@ -125,7 +125,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
                         }
                     }
                 },
-                new []{new DrsAppointmentSlot{StartTime = date.AddHours(8), EndTime = date.AddHours(12)}}
+                new []{new AppointmentSlot{StartTime = date.AddHours(8), EndTime = date.AddHours(12)}}
             };
 
             yield return new object[]
@@ -153,7 +153,7 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
                         }
                     }
                 },
-                new []{new DrsAppointmentSlot{StartTime = date.AddHours(12), EndTime = date.AddHours(16)}}
+                new []{new AppointmentSlot{StartTime = date.AddHours(12), EndTime = date.AddHours(16)}}
             };
         }
 
@@ -169,8 +169,8 @@ namespace HousingRepairsSchedulingApi.Tests.ServicesTests.Drs
                     new xmbCheckAvailabilityResponse { theSlots = new[] { new daySlotsInfo { day = dateTime } } }));
 
             // Act
-            var drsAppointmentSlots = await systemUnderTest.CheckAvailability(SorCode, LocationId, dateTime);
-            Func<IEnumerable<DrsAppointmentSlot>> act = () => drsAppointmentSlots.ToArray();
+            var appointmentSlots = await systemUnderTest.CheckAvailability(SorCode, LocationId, dateTime);
+            Func<IEnumerable<AppointmentSlot>> act = () => appointmentSlots.ToArray();
 
             // Assert
             act.Should().NotThrow<ArgumentNullException>();

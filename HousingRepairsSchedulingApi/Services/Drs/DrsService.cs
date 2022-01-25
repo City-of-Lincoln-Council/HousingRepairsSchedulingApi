@@ -5,7 +5,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
     using System.Linq;
     using System.Threading.Tasks;
     using Ardalis.GuardClauses;
-    using Domain.Drs;
+    using Domain;
     using Microsoft.Extensions.Options;
 
     public class DrsService : IDrsService
@@ -29,7 +29,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
             this.drsOptions = drsOptions;
         }
 
-        public async Task<IEnumerable<DrsAppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate)
+        public async Task<IEnumerable<AppointmentSlot>> CheckAvailability(string sorCode, string locationId, DateTime earliestDate)
         {
             await EnsureSessionOpened();
 
@@ -60,11 +60,11 @@ namespace HousingRepairsSchedulingApi.Services.Drs
 
             var checkAvailabilityResponse = await this.drsSoapClient.checkAvailabilityAsync(new checkAvailability(checkAvailability));
 
-            var drsAppointmentSlots = checkAvailabilityResponse.@return.theSlots
+            var appointmentSlots = checkAvailabilityResponse.@return.theSlots
                 .Where(x => x.slotsForDay != null)
                 .SelectMany(x =>
                     x.slotsForDay.Where(y => y.available == availableValue.YES).Select(y =>
-                        new DrsAppointmentSlot
+                        new AppointmentSlot
                         {
                             StartTime = y.beginDate,
                             EndTime = y.endDate,
@@ -72,7 +72,7 @@ namespace HousingRepairsSchedulingApi.Services.Drs
                     )
             );
 
-            return drsAppointmentSlots;
+            return appointmentSlots;
         }
 
         private async Task OpenSession()
