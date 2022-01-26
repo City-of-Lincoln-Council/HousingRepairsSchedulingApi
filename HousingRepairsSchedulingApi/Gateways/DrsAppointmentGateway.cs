@@ -42,7 +42,9 @@ namespace HousingRepairsSchedulingApi.Gateways
                 var appointments = await drsService.CheckAvailability(sorCode, locationId, earliestDate);
                 appointments = appointments.Where(x =>
                     !(x.StartTime.Hour == 9 && x.EndTime.Minute == 30
-                      && x.EndTime.Hour == 14 && x.EndTime.Minute == 30)
+                      && x.EndTime.Hour == 14 && x.EndTime.Minute == 30) &&
+                    !(x.StartTime.Hour == 8 && x.EndTime.Minute == 0
+                                            && x.EndTime.Hour == 16 && x.EndTime.Minute == 0)
                 );
                 appointmentSlots = appointmentSlots.Concat(appointments);
                 earliestDate = earliestDate.AddDays(appointmentSearchTimeSpanInDays);

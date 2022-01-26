@@ -251,7 +251,8 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         private static IEnumerable<AppointmentSlot> CreateAppointmentsForDay(DateTime dateTime,
             bool include0800To1200 = false,
             bool include1200To1600 = false,
-            bool include0930To1430 = false)
+            bool include0930To1430 = false,
+            bool include0800To1600 = false)
         {
             var result = new List<AppointmentSlot>();
 
@@ -283,6 +284,17 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                     new()
                     {
                         StartTime = dateTime.AddHours(12),
+                        EndTime = dateTime.AddHours(16),
+                    }
+                );
+            }
+
+            if (include0800To1600)
+            {
+                result.Add(
+                    new()
+                    {
+                        StartTime = dateTime.AddHours(8),
                         EndTime = dateTime.AddHours(16),
                     }
                 );
@@ -322,7 +334,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<DateTime>()))
-                .ReturnsAsync(CreateAppointmentsForDay(new DateTime(2022, 1, 17), true, true, true));
+                .ReturnsAsync(CreateAppointmentsForDay(new DateTime(2022, 1, 17), true, true, true, true));
 
             var expected = new[]
                 {
