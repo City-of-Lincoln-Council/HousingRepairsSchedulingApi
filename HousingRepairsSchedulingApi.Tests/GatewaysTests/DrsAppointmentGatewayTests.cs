@@ -168,7 +168,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         [Theory]
         [MemberData(nameof(DrsServiceHasFiveAvailableAppointmentsTestData))]
 #pragma warning disable CA1707
-        public async void GivenDrsServiceHasFiveDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<AppointmentSlot>> appointmentReturnSequence)
+        public async void GivenDrsServiceHasFiveOrMoreDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<AppointmentSlot>> appointmentReturnSequence)
 #pragma warning restore CA1707
         {
             // Arrange
@@ -245,6 +245,26 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 CreateAppointmentsForDay(new DateTime(2022, 1, 20), true, true),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true),
+            }};
+
+            // more than 5 days of appointments
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), true, true)),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 20), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true),
+                CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 23), true, true)),
+            }};
+            yield return new object[] { new[]
+            {
+                CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true)
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 19), true, true))
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 20), true, true))
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true))
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true))
+                    .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 23), true, true)),
             }};
         }
 

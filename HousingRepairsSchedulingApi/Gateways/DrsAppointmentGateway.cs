@@ -48,6 +48,9 @@ namespace HousingRepairsSchedulingApi.Gateways
                 earliestDate = earliestDate.AddDays(appointmentSearchTimeSpanInDays);
             }
 
+            appointmentSlots = appointmentSlots.GroupBy(x => x.StartTime.Date).Take(requiredNumberOfAppointmentDays)
+                .SelectMany(x => x.Select(y => y));
+
             return appointmentSlots;
         }
     }
