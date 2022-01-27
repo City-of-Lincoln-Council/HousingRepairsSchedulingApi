@@ -166,7 +166,9 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         }
 
         [Theory]
-        [MemberData(nameof(DrsServiceHasFiveAvailableAppointmentsTestData))]
+        [MemberData(nameof(FiveDaysOfAvailableAppointmentsSingleAppointmentPerDayTestData))]
+        [MemberData(nameof(FiveDaysOfAvailableAppointmentsMultipleAppointmentsPerDayTestData))]
+        [MemberData(nameof(MoreThanFiveDaysOfAvailableAppointmentsTestData))]
 #pragma warning disable CA1707
         public async void GivenDrsServiceHasFiveOrMoreDaysOfAvailableAppointments_WhenGettingAvailableAppointments_ThenFiveDaysOfAppointmentsAreReturned(IEnumerable<IEnumerable<AppointmentSlot>> appointmentReturnSequence)
 #pragma warning restore CA1707
@@ -192,9 +194,8 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             Assert.Equal(RequiredNumberOfAppointmentDays, actualAppointments.Select(x => x.StartTime.Date).Distinct().Count());
         }
 
-        public static IEnumerable<object[]> DrsServiceHasFiveAvailableAppointmentsTestData()
+        public static IEnumerable<object[]> FiveDaysOfAvailableAppointmentsSingleAppointmentPerDayTestData()
         {
-            // single appointment per day
             yield return new object[] { new[]
             {
                 CreateAppointmentsForDay(new DateTime(2022, 1, 18), true),
@@ -228,8 +229,10 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                     .Concat(CreateAppointmentsForDay(new DateTime(2022, 1, 21), true)),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 22), true),
             }};
+        }
 
-            // multiple appointments per day
+        public static IEnumerable<object[]> FiveDaysOfAvailableAppointmentsMultipleAppointmentsPerDayTestData()
+        {
             yield return new object[] { new[]
             {
                 CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true),
@@ -246,8 +249,10 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 CreateAppointmentsForDay(new DateTime(2022, 1, 21), true, true),
                 CreateAppointmentsForDay(new DateTime(2022, 1, 22), true, true),
             }};
+        }
 
-            // more than 5 days of appointments
+        public static IEnumerable<object[]> MoreThanFiveDaysOfAvailableAppointmentsTestData()
+        {
             yield return new object[] { new[]
             {
                 CreateAppointmentsForDay(new DateTime(2022, 1, 18), true, true)
