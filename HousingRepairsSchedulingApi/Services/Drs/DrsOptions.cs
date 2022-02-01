@@ -8,5 +8,6 @@ namespace HousingRepairsSchedulingApi.Services.Drs
         public string Login { get; set; }
         public string Password { get; set; }
         public int SearchTimeSpanInDays { get; set; } = 14;
+        public int AppointmentLeadTimeInDays { get; set; } = 7;
     }
 }
