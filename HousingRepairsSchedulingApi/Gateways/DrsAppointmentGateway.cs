@@ -13,19 +13,23 @@ namespace HousingRepairsSchedulingApi.Gateways
         private readonly int requiredNumberOfAppointmentDays;
         private readonly int appointmentSearchTimeSpanInDays;
         private readonly int appointmentLeadTimeInDays;
+        private readonly int maximumNumberOfRequests;
         private readonly IDrsService drsService;
 
-        public DrsAppointmentGateway(IDrsService drsService, int requiredNumberOfAppointmentDays, int appointmentSearchTimeSpanInDays, int appointmentLeadTimeInDays)
+        public DrsAppointmentGateway(IDrsService drsService, int requiredNumberOfAppointmentDays,
+            int appointmentSearchTimeSpanInDays, int appointmentLeadTimeInDays, int maximumNumberOfRequests)
         {
             Guard.Against.Null(drsService, nameof(drsService));
             Guard.Against.NegativeOrZero(requiredNumberOfAppointmentDays, nameof(requiredNumberOfAppointmentDays));
             Guard.Against.NegativeOrZero(appointmentSearchTimeSpanInDays, nameof(appointmentSearchTimeSpanInDays));
             Guard.Against.Negative(appointmentLeadTimeInDays, nameof(appointmentLeadTimeInDays));
+            Guard.Against.NegativeOrZero(maximumNumberOfRequests, nameof(maximumNumberOfRequests));
 
             this.drsService = drsService;
             this.requiredNumberOfAppointmentDays = requiredNumberOfAppointmentDays;
             this.appointmentSearchTimeSpanInDays = appointmentSearchTimeSpanInDays;
             this.appointmentLeadTimeInDays = appointmentLeadTimeInDays;
+            this.maximumNumberOfRequests = maximumNumberOfRequests;
         }
 
         public async Task<IEnumerable<AppointmentSlot>> GetAvailableAppointments(string sorCode, string locationId,
@@ -37,8 +41,10 @@ namespace HousingRepairsSchedulingApi.Gateways
             var earliestDate = fromDate ?? DateTime.Today.AddDays(appointmentLeadTimeInDays);
             var appointmentSlots = Enumerable.Empty<AppointmentSlot>();
 
-            while (appointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
+            var numberOfRequests = 0;
+            while (numberOfRequests < maximumNumberOfRequests && appointmentSlots.Select(x => x.StartTime.Date).Distinct().Count() < requiredNumberOfAppointmentDays)
             {
+                numberOfRequests++;
                 var appointments = await drsService.CheckAvailability(sorCode, locationId, earliestDate);
                 appointments = appointments.Where(x =>
                     !(x.StartTime.Hour == 9 && x.EndTime.Minute == 30

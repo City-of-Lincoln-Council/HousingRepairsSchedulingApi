@@ -58,8 +58,9 @@ namespace HousingRepairsSchedulingApi
                     var drsOptions = sp.GetRequiredService<IOptions<DrsOptions>>();
                     var appointmentSearchTimeSpanInDays = drsOptions.Value.SearchTimeSpanInDays;
                     var appointmentLeadTimeInDays = drsOptions.Value.AppointmentLeadTimeInDays;
+                    var maximumNumberOfRequests = drsOptions.Value.MaximumNumberOfRequests;
                     return new DrsAppointmentGateway(sp.GetService<IDrsService>(),
-                        5, appointmentSearchTimeSpanInDays, appointmentLeadTimeInDays);
+                        5, appointmentSearchTimeSpanInDays, appointmentLeadTimeInDays, maximumNumberOfRequests);
                 }
             );
 

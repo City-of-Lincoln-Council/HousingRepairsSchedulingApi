@@ -3,6 +3,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Threading.Tasks;
     using Domain;
     using FluentAssertions;
@@ -18,6 +19,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
         private const int RequiredNumberOfAppointmentDays = 5;
         private const int AppointmentSearchTimeSpanInDays = 14;
         private const int AppointmentLeadTimeInDays = 0;
+        private const int MaximumNumberOfRequests = 10;
         private const string BookingReference = "Booking Reference";
         private const string SorCode = "SOR Code";
         private const string LocationId = "locationId";
@@ -28,7 +30,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 this.drsServiceMock.Object,
                 RequiredNumberOfAppointmentDays,
                 AppointmentSearchTimeSpanInDays,
-                AppointmentLeadTimeInDays);
+                AppointmentLeadTimeInDays, MaximumNumberOfRequests);
         }
 
         [Fact]
@@ -41,6 +43,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
             // Act
             Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
                 null,
+                default,
                 default,
                 default,
                 default);
@@ -63,6 +66,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 this.drsServiceMock.Object,
                 invalidRequiredNumberOfAppointments,
                 default,
+                default,
                 default);
 
             // Assert
@@ -81,7 +85,8 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 this.drsServiceMock.Object,
                 1,
                 1,
-                -1);
+                -1,
+                default);
 
             // Assert
             act.Should().ThrowExactly<ArgumentException>();
@@ -101,10 +106,32 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 this.drsServiceMock.Object,
                 1,
                 invalidAppointmentSearchTimeSpanInDays,
+                default,
                 default);
 
             // Assert
             act.Should().ThrowExactly<ArgumentException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+#pragma warning disable CA1707
+        public void GivenInvalidMaximumNumberOfRequestsParameter_WhenInstantiating_ThenArgumentExceptionIsThrown(int invalidMaximumNumberOfRequests)
+#pragma warning restore CA1707
+        {
+            // Arrange
+
+            // Act
+            Func<DrsAppointmentGateway> act = () => new DrsAppointmentGateway(
+                this.drsServiceMock.Object,
+                1,
+                1,
+                default,
+                invalidMaximumNumberOfRequests);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentException>().WithParameterName("maximumNumberOfRequests");
         }
 
         public static IEnumerable<object[]> InvalidArgumentTestData()
@@ -356,7 +383,7 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
                 this.drsServiceMock.Object,
                 1,
                 AppointmentSearchTimeSpanInDays,
-                AppointmentLeadTimeInDays);
+                AppointmentLeadTimeInDays, int.MaxValue);
 
             drsServiceMock.SetupSequence(x => x.CheckAvailability(
                     It.IsAny<string>(),
@@ -411,6 +438,51 @@ namespace HousingRepairsSchedulingApi.Tests.GatewaysTests
 
             // Assert
             drsServiceMock.VerifyAll();
+        }
+
+        [Fact]
+        public async void GivenNoAppointmentSlots_WhenGettingAvailableApointments_ThenExactlyMaximumNumberOfRequestsAreSent()
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "locationId";
+
+            // Act
+            _ = await systemUnderTest.GetAvailableAppointments(sorCode, locationId, new DateTime(2022, 1, 17));
+
+            // Assert
+            drsServiceMock.Verify(x => x.CheckAvailability(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>()), Times.Exactly(10));
+        }
+
+        [Fact]
+        public async void GivenAppointmentSlotsInFuture_WhenGettingAvailableApointments_ThenNoMoreThanMaximumNumberOfRequestsAreMade()
+        {
+            // Arrange
+            var sorCode = "sorCode";
+            var locationId = "locationId";
+
+            Expression<Func<IDrsService, Task<IEnumerable<AppointmentSlot>>>> expression = x => x.CheckAvailability(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>());
+            drsServiceMock.SetupSequence(expression)
+                .ReturnsAsync(Enumerable.Empty<AppointmentSlot>())
+                .ReturnsAsync(Enumerable.Empty<AppointmentSlot>())
+                .ReturnsAsync(Enumerable.Empty<AppointmentSlot>())
+                .ReturnsAsync(Enumerable.Empty<AppointmentSlot>())
+                .ReturnsAsync(CreateAppointmentsForSequentialDays(new DateTime(2022, 1, 17), 5));
+
+            // Act
+            _ = await systemUnderTest.GetAvailableAppointments(sorCode, locationId, new DateTime(2022, 1, 17));
+
+            // Assert
+            drsServiceMock.Verify(x => x.CheckAvailability(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTime>()), Times.AtMost(10));
         }
 
         [Theory]
