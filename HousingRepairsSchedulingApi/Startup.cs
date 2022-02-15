@@ -69,6 +69,8 @@ namespace HousingRepairsSchedulingApi
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HousingRepairsSchedulingApi", Version = "v1" });
                 c.AddJwtSecurityScheme();
             });
+
+            services.AddHealthChecks();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,6 +94,7 @@ namespace HousingRepairsSchedulingApi
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHealthChecks("/health");
                 endpoints.MapControllers().RequireAuthorization();
             });
         }
