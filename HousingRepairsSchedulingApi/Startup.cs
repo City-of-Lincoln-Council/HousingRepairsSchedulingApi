@@ -72,7 +72,7 @@ namespace HousingRepairsSchedulingApi
             });
 
             var address = Configuration.GetSection(nameof(DrsOptions))[DrsOptionsApiAddressConfigurationKey];
-            var addressHost = new Uri(address).Host;
+            var addressHost = new Uri(address).GetLeftPart(UriPartial.Authority);
             services.AddHealthChecks()
                 .AddUrlGroup(new Uri(addressHost), "DRS API Url");
         }
