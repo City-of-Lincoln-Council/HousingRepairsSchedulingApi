@@ -24,6 +24,7 @@ namespace HousingRepairsSchedulingApi
     public class Startup
     {
         private const string HousingRepairsSchedulingApiIssuerId = "Housing Management System Api";
+        private const string DrsOptionsApiAddressConfigurationKey = nameof(DrsOptions.ApiAddress);
 
         public Startup(IConfiguration configuration)
         {
@@ -70,7 +71,10 @@ namespace HousingRepairsSchedulingApi
                 c.AddJwtSecurityScheme();
             });
 
-            services.AddHealthChecks();
+            var address = Configuration.GetSection(nameof(DrsOptions))[DrsOptionsApiAddressConfigurationKey];
+            var addressHost = new Uri(address).Host;
+            services.AddHealthChecks()
+                .AddUrlGroup(new Uri(addressHost), "DRS API Url");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -103,9 +107,9 @@ namespace HousingRepairsSchedulingApi
         {
             var drsOptionsConfiguration = this.Configuration.GetSection(nameof(DrsOptions));
 
-            if (string.IsNullOrEmpty(drsOptionsConfiguration["ApiAddress"]))
+            if (string.IsNullOrEmpty(drsOptionsConfiguration[DrsOptionsApiAddressConfigurationKey]))
             {
-                throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{nameof(DrsOptions.ApiAddress)} is a required configuration.");
+                throw new InvalidOperationException($"Incorrect configuration: {nameof(DrsOptions)}.{DrsOptionsApiAddressConfigurationKey} is a required configuration.");
             }
             if (string.IsNullOrEmpty(drsOptionsConfiguration["Login"]))
             {
