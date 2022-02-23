@@ -74,7 +74,7 @@ namespace HousingRepairsSchedulingApi
             var address = Configuration.GetSection(nameof(DrsOptions))[DrsOptionsApiAddressConfigurationKey];
             var addressHost = new Uri(address).Host;
             services.AddHealthChecks()
-                .AddPingHealthCheck(options => options.AddHost(addressHost, 1000), name: "DRS Host Ping");
+                .AddTcpHealthCheck(options => options.AddHost(addressHost, 80), name: "DRS Host TCP Ping");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
